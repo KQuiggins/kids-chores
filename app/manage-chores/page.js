@@ -1,17 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { databases, ID } from '../lib/appwrite'; // Assuming client is implicitly used by these services
-import ChoresList from '../components/ChoresList';
-import ChoreForm from '../components/ChoreForm';
-
-// TODO: Replace with your actual Appwrite IDs!
-// Find these in your Appwrite project console.
-// Database ID: Navigate to Databases, select your database, its ID is in the settings.
-// Collection ID: Inside your database, select the 'chores' collection, its ID is in the settings.
-// Ensure DATABASE_ID is the same as used in manage-kids page if they share the same database.
-const DATABASE_ID = 'YOUR_APPWRITE_DATABASE_ID'; 
-const CHORES_COLLECTION_ID = 'YOUR_CHORES_COLLECTION_ID';
+import { fetchChores, createChore, updateChore, deleteChore } from '@/app/actions/fetchChoreAction';
+import ChoresList from '@/app/components/ChoresList';
+import ChoreForm from '@/app/components/ChoreForm';
 
 export default function ManageChoresPage() {
   const [chores, setChores] = useState([]);
@@ -20,22 +12,27 @@ export default function ManageChoresPage() {
   const [editingChoreData, setEditingChoreData] = useState(null);
   const [error, setError] = useState('');
 
-  async function fetchChores() {
+  async function loadChores() {
     setIsLoading(true);
     setError('');
     try {
-      const response = await databases.listDocuments(DATABASE_ID, CHORES_COLLECTION_ID);
-      setChores(response.documents);
+      const result = await fetchChores();
+      logging('Chores fetched:', result);
+      if (result.success) {
+        setChores(result.documents);
+      } else {
+        setError(result.error);
+      }
     } catch (error) {
       console.error('Failed to fetch chores:', error);
-      setError('Failed to load chores. Please ensure Appwrite is configured correctly (Database ID, Chores Collection ID).');
+      setError('Failed to load chores. Please try again.');
     } finally {
       setIsLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchChores();
+    loadChores();
   }, []);
 
   const handleAddChoreClick = () => {
@@ -60,28 +57,23 @@ export default function ManageChoresPage() {
     setIsLoading(true);
     setError('');
     try {
-      const dataPayload = {
-        title: choreData.title,
-        description: choreData.description,
-        frequency: choreData.frequency,
-        // created_at is handled by Appwrite ($createdAt)
-      };
-      
+      let result;
       if (choreIdToUpdate) {
-        // Update existing chore
-        await databases.updateDocument(DATABASE_ID, CHORES_COLLECTION_ID, choreIdToUpdate, dataPayload);
+        result = await updateChore(choreIdToUpdate, choreData);
       } else {
-        // Add new chore
-        // Appwrite's $createdAt is automatic. If you have a manual 'created_at' field, add it here.
-        await databases.createDocument(DATABASE_ID, CHORES_COLLECTION_ID, ID.unique(), dataPayload);
+        result = await createChore(choreData);
       }
 
-      await fetchChores(); // Refresh list
-      setShowChoreForm(false);
-      setEditingChoreData(null);
+      if (result.success) {
+        await loadChores();
+        setShowChoreForm(false);
+        setEditingChoreData(null);
+      } else {
+        setError(result.error);
+      }
     } catch (error) {
       console.error('Failed to save chore:', error);
-      setError(`Failed to save chore: ${error.message}. Check Appwrite configuration.`);
+      setError('Failed to save chore. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -94,11 +86,15 @@ export default function ManageChoresPage() {
     setIsLoading(true);
     setError('');
     try {
-      await databases.deleteDocument(DATABASE_ID, CHORES_COLLECTION_ID, choreId);
-      await fetchChores(); // Refresh list
+      const result = await deleteChore(choreId);
+      if (result.success) {
+        await loadChores(); // Refresh list
+      } else {
+        setError(result.error);
+      }
     } catch (error) {
       console.error('Failed to delete chore:', error);
-      setError(`Failed to delete chore: ${error.message}`);
+      setError('Failed to delete chore. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -128,7 +124,7 @@ export default function ManageChoresPage() {
               Add New Chore
             </button>
           </div>
-          {isLoading && !chores.length ? ( 
+          {isLoading && !chores.length ? (
             <p className="text-center text-blue-500 text-xl">Loading chores...</p>
           ) : (
             <ChoresList chores={chores} onEditChore={handleEditChore} onDeleteChore={handleDeleteChore} />
@@ -146,11 +142,6 @@ export default function ManageChoresPage() {
           />
         </div>
       )}
-      { (DATABASE_ID.startsWith('YOUR_') || CHORES_COLLECTION_ID.startsWith('YOUR_')) && (
-         <div className="fixed bottom-0 left-0 right-0 bg-yellow-200 p-3 text-center text-yellow-800 border-t border-yellow-400">
-            <strong>Reminder:</strong> Please replace placeholder Appwrite IDs (<code>DATABASE_ID</code>, <code>CHORES_COLLECTION_ID</code>) in <code>app/manage-chores/page.js</code> with your actual Appwrite project values.
-         </div>
-       )}
     </div>
   );
 }

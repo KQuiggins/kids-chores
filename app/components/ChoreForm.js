@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 
+
 export default function ChoreForm({ onSubmitChore, initialData, onCancel }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [frequency, setFrequency] = useState('daily'); // Default frequency
+  const [frequency, setFrequency] = useState('daily');
 
   useEffect(() => {
     if (initialData) {
@@ -13,7 +14,7 @@ export default function ChoreForm({ onSubmitChore, initialData, onCancel }) {
       setDescription(initialData.description || '');
       setFrequency(initialData.frequency || 'daily');
     } else {
-      // New chore form defaults
+
       setTitle('');
       setDescription('');
       setFrequency('daily');
@@ -32,7 +33,7 @@ export default function ChoreForm({ onSubmitChore, initialData, onCancel }) {
       description: description.trim(),
       frequency,
     };
-    
+
     onSubmitChore(choreData, initialData ? initialData.$id : null);
   };
 
@@ -47,7 +48,7 @@ export default function ChoreForm({ onSubmitChore, initialData, onCancel }) {
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
           required
         />
       </div>
@@ -61,7 +62,7 @@ export default function ChoreForm({ onSubmitChore, initialData, onCancel }) {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows="3"
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
         ></textarea>
       </div>
 
@@ -73,7 +74,7 @@ export default function ChoreForm({ onSubmitChore, initialData, onCancel }) {
           id="frequency"
           value={frequency}
           onChange={(e) => setFrequency(e.target.value)}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
         >
           <option value="daily">Daily</option>
           <option value="weekly">Weekly</option>

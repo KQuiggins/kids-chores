@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
+
 const availableAvatars = ['/avatars/avatar1.svg', '/avatars/avatar2.svg', '/avatars/avatar3.svg'];
 
 export default function KidForm({ onSubmitKid, initialData, onCancel }) {
@@ -19,17 +20,13 @@ export default function KidForm({ onSubmitKid, initialData, onCancel }) {
         setCustomPhoto(null);
         setCustomPhotoPreview('');
       } else if (!initialData.default_avatar_used && initialData.photo_url) {
-        // Assuming initialData.photo_url is an Appwrite File ID if not a default avatar
-        // For simplicity, we don't pre-fill the file input or show preview of existing Appwrite image
-        // User will have to re-select if they want to change it, or keep it.
-        setSelectedAvatar(''); // Clear default avatar selection
-        // Previewing Appwrite images here would require async call to storage.getFilePreview
-        // For now, if editing, we assume the photo is kept unless a new one or default avatar is chosen
+
+        setSelectedAvatar('');
       }
     } else {
-      // New kid form defaults
+
       setName('');
-      setSelectedAvatar(availableAvatars[0]); // Default to first avatar
+      setSelectedAvatar(availableAvatars[0]);
       setCustomPhoto(null);
       setCustomPhotoPreview('');
     }
@@ -40,7 +37,7 @@ export default function KidForm({ onSubmitKid, initialData, onCancel }) {
       const file = e.target.files[0];
       setCustomPhoto(file);
       setCustomPhotoPreview(URL.createObjectURL(file));
-      setSelectedAvatar(''); // Clear selected default avatar
+      setSelectedAvatar('');
     }
   };
 
@@ -63,17 +60,17 @@ export default function KidForm({ onSubmitKid, initialData, onCancel }) {
 
     const kidData = {
       name: name.trim(),
-      photo_url: selectedAvatar, // Will be default avatar path or Appwrite File ID (set in parent)
+      photo_url: selectedAvatar,
       default_avatar_used: !!selectedAvatar,
-      customPhotoFile: customPhoto, // Pass the file object for parent to handle upload
+      customPhotoFile: customPhoto,
     };
+
     
-    // If editing and no new photo/avatar is selected, retain original photo info
     if (initialData && !selectedAvatar && !customPhoto) {
         kidData.photo_url = initialData.photo_url;
         kidData.default_avatar_used = initialData.default_avatar_used;
     }
-    
+
     onSubmitKid(kidData, initialData ? initialData.$id : null);
   };
 

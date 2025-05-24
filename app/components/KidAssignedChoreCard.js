@@ -19,18 +19,15 @@ export default function KidAssignedChoreCard({ assignment, choreDetails, onToggl
   const handleToggle = async () => {
     setIsUpdating(true);
     await onToggleComplete(assignment.$id, assignment.status);
-    // The parent component will refresh the data, which will cause this component to re-render
-    // with the new status. So, local 'isUpdating' can be reset shortly after,
-    // or rely on parent's isLoading prop if that covers individual card updates.
-    // For now, let's assume parent handles the visual feedback for loading state of the list.
-    setIsUpdating(false); 
+    
+    setIsUpdating(false);
   };
-  
-  const cardStyle = assignment.status === 'done' 
-    ? 'bg-green-100 border-green-300' 
+
+  const cardStyle = assignment.status === 'done'
+    ? 'bg-green-100 border-green-300'
     : 'bg-yellow-50 border-yellow-300';
-  const titleStyle = assignment.status === 'done' 
-    ? 'line-through text-green-700' 
+  const titleStyle = assignment.status === 'done'
+    ? 'line-through text-green-700'
     : 'text-yellow-700';
   const buttonStyle = assignment.status === 'done'
     ? 'bg-orange-400 hover:bg-orange-500 text-white'

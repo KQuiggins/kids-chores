@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function AssignChoreForm({ kids, chores, onAssignChores, isLoading }) {
   const [selectedKidIds, setSelectedKidIds] = useState([]);
   const [selectedChoreIds, setSelectedChoreIds] = useState([]);
-  const [assignmentDate, setAssignmentDate] = useState(new Date().toISOString().split('T')[0]); // Defaults to today
-
+  const [assignmentDate, setAssignmentDate] = useState(new Date().toISOString().split('T')[0]);
   const handleKidSelection = (kidId) => {
     setSelectedKidIds((prev) =>
       prev.includes(kidId) ? prev.filter((id) => id !== kidId) : [...prev, kidId]
@@ -40,14 +39,14 @@ export default function AssignChoreForm({ kids, chores, onAssignChores, isLoadin
         assignments.push({
           kid_id: kidId,
           chore_id: choreId,
-          date: new Date(assignmentDate).toISOString(), // Ensure ISO format for Appwrite
+          date: new Date(assignmentDate).toISOString(),
           status: 'pending',
         });
       });
     });
     onAssignChores(assignments);
   };
-  
+
   const toggleSelectAllKids = () => {
     if (selectedKidIds.length === kids.length) {
       setSelectedKidIds([]);
@@ -77,7 +76,7 @@ export default function AssignChoreForm({ kids, chores, onAssignChores, isLoadin
             <label
               key={kid.$id}
               className={`flex items-center space-x-2 p-2 rounded-md cursor-pointer transition-colors ${
-                selectedKidIds.includes(kid.$id) ? 'bg-indigo-100 border-indigo-300' : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
+                selectedKidIds.includes(kid.$id) ? 'bg-indigo-100 border-indigo-300' : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-900'
               } border`}
             >
               <input
@@ -102,18 +101,18 @@ export default function AssignChoreForm({ kids, chores, onAssignChores, isLoadin
             <label
               key={chore.$id}
               className={`flex items-center space-x-2 p-2 rounded-md cursor-pointer transition-colors ${
-                selectedChoreIds.includes(chore.$id) ? 'bg-green-100 border-green-300' : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
+                selectedChoreIds.includes(chore.$id) ? 'bg-green-100 border-green-300' : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-900'
               } border`}
             >
               <input
                 type="checkbox"
                 checked={selectedChoreIds.includes(chore.$id)}
                 onChange={() => handleChoreSelection(chore.$id)}
-                className="form-checkbox h-5 w-5 text-green-600 rounded focus:ring-green-500"
+                className="form-checkbox h-5 w-5 text-gray-900 rounded focus:ring-green-500"
               />
               <div>
                 <span className="text-sm text-gray-700">{chore.title}</span>
-                <p className="text-xs text-gray-500">{chore.frequency}</p>
+                <p className="text-xs text-gray-900">{chore.frequency}</p>
               </div>
             </label>
           ))}
@@ -129,7 +128,7 @@ export default function AssignChoreForm({ kids, chores, onAssignChores, isLoadin
           id="assignmentDate"
           value={assignmentDate}
           onChange={(e) => setAssignmentDate(e.target.value)}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
           required
         />
       </div>
