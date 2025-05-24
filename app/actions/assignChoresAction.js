@@ -29,21 +29,47 @@ export async function fetchKidsAndChores() {
   }
 }
 
-export async function createAssignments(assignmentsData) {
+export async function createAssignments(formData) {
   try {
+    const kidIds = formData.getAll('kidIds');
+    const choreIds = formData.getAll('choreIds');
+    const assignmentDateString = formData.get('assignmentDate');
+
+    if (!assignmentDateString) {
+      return { success: false, error: "Assignment date is missing." };
+    }
+    if (!kidIds || kidIds.length === 0) {
+        return { success: false, error: "No kids selected for assignment." };
+    }
+    if (!choreIds || choreIds.length === 0) {
+        return { success: false, error: "No chores selected for assignment." };
+    }
+    
+    const formattedAssignmentDate = new Date(assignmentDateString).toISOString();
+
+    const assignmentsData = [];
+    for (const kid_id of kidIds) {
+      for (const chore_id of choreIds) {
+        assignmentsData.push({
+          kid_id,
+          chore_id,
+          date: formattedAssignmentDate,
+          status: 'pending'
+        });
+      }
+    }
+
+    if (assignmentsData.length === 0) {
+        return { success: false, error: "No assignments to create. Please select kids and chores." };
+    }
+
     let createdCount = 0;
     const errors = [];
 
     const creationPromises = assignmentsData.map(async (assignment) => {
       try {
-        const payload = {
-          kid_id: assignment.kid_id,
-          chore_id: assignment.chore_id,
-          date: assignment.date,
-          status: 'pending'
-        };
-
-        await databases.createDocument(DATABASE_ID, ASSIGNMENTS_COLLECTION_ID, ID.unique(), payload);
+        // Payload is already the assignment object itself
+        await databases.createDocument(DATABASE_ID, ASSIGNMENTS_COLLECTION_ID, ID.unique(), assignment);
         createdCount++;
         return { success: true };
       } catch (error) {
@@ -67,9 +93,11 @@ export async function createAssignments(assignmentsData) {
         warning: `Some chores could not be assigned. ${assignmentsData.length - createdCount} failed.`
       };
     } else {
+      // Ensure errors array is not empty before joining, or provide a generic message
+      const errorMsg = errors.length > 0 ? errors.join(', ') : 'Unknown errors occurred.';
       return {
         success: false,
-        error: `Failed to assign chores. Errors: ${errors.join(', ')}`
+        error: `Failed to assign chores. Errors: ${errorMsg}`
       };
     }
   } catch (error) {

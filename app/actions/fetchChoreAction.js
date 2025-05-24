@@ -19,12 +19,16 @@ export async function fetchChores() {
   }
 }
 
-export async function createChore(choreData) {
+export async function createChore(formData) {
   try {
+    const title = formData.get('title');
+    const description = formData.get('description');
+    const frequency = formData.get('frequency');
+
     const dataPayload = {
-      title: choreData.title,
-      description: choreData.description,
-      frequency: choreData.frequency,
+      title,
+      description,
+      frequency,
     };
 
     await databases.createDocument(DATABASE_ID, CHORES_COLLECTION_ID, ID.unique(), dataPayload);
@@ -35,12 +39,16 @@ export async function createChore(choreData) {
   }
 }
 
-export async function updateChore(choreId, choreData) {
+export async function updateChore(choreId, formData) {
   try {
+    const title = formData.get('title');
+    const description = formData.get('description');
+    const frequency = formData.get('frequency');
+
     const dataPayload = {
-      title: choreData.title,
-      description: choreData.description,
-      frequency: choreData.frequency,
+      title,
+      description,
+      frequency,
     };
 
     await databases.updateDocument(DATABASE_ID, CHORES_COLLECTION_ID, choreId, dataPayload);

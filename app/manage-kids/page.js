@@ -37,47 +37,23 @@ export default function ManageKidsPage() {
   const handleAddKidClick = () => {
     setEditingKidData(null);
     setShowKidForm(true);
-    setError('');
+    // setError(''); // Form will handle its own errors
   };
 
   const handleEditKid = (kid) => {
     setEditingKidData(kid);
     setShowKidForm(true);
-    setError('');
+    // setError(''); // Form will handle its own errors
   };
 
   const handleCancelForm = () => {
     setShowKidForm(false);
     setEditingKidData(null);
-    setError('');
+    setError(''); // Clear any page-level errors
+    loadKids(); // Reload kids data as a successful C/U operation might have occurred
   };
 
-  const handleSubmitKid = async (kidData, kidIdToUpdate) => {
-    setIsLoading(true);
-    setError('');
-    try {
-      let result;
-
-      if (kidIdToUpdate) {
-        result = await updateKid(kidIdToUpdate, kidData, editingKidData);
-      } else {
-        result = await createKid(kidData);
-      }
-
-      if (result.success) {
-        await loadKids();
-        setShowKidForm(false);
-        setEditingKidData(null);
-      } else {
-        setError(result.error);
-      }
-    } catch (error) {
-      console.error('Failed to save kid:', error);
-      setError(`Failed to save kid: ${error.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // handleSubmitKid is removed, KidForm now uses server actions
 
   const handleDeleteKid = async (kidId, photoFileIdToDelete) => {
     if (!confirm('Are you sure you want to delete this kid?')) {
@@ -136,7 +112,7 @@ export default function ManageKidsPage() {
             {editingKidData ? 'Edit Kid' : 'Add New Kid'}
           </h2>
           <KidForm
-            onSubmitKid={handleSubmitKid}
+            // onSubmitKid is removed
             initialData={editingKidData}
             onCancel={handleCancelForm}
           />

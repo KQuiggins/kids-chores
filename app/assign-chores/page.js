@@ -8,22 +8,23 @@ export default function AssignChoresPage() {
   const [kids, setKids] = useState([]);
   const [chores, setChores] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  // const [isSubmitting, setIsSubmitting] = useState(false); // Removed, form handles its own status
+  const [error, setError] = useState(''); // For page-level errors e.g. loading kids/chores
+  const [successMessage, setSuccessMessage] = useState(''); // For page-level success e.g. loading data
 
   const loadData = async () => {
     setIsLoading(true);
-    setError('');
-    setSuccessMessage('');
+    setError(''); // Clear previous page-level errors
+    setSuccessMessage(''); // Clear previous page-level success messages
 
     try {
       const result = await fetchKidsAndChores();
       if (result.success) {
         setKids(result.kids);
         setChores(result.chores);
+        // setSuccessMessage('Kids and chores loaded successfully.'); // Optional: if you want a message for data loading
       } else {
-        setError(result.error);
+        setError(result.error || 'Failed to load initial data.'); // Ensure error is a string
         setKids([]);
         setChores([]);
       }
@@ -41,29 +42,8 @@ export default function AssignChoresPage() {
     loadData();
   }, []);
 
-  const handleAssignChores = async (assignmentsData) => {
-    setIsSubmitting(true);
-    setError('');
-    setSuccessMessage('');
-
-    try {
-      const result = await createAssignments(assignmentsData);
-
-      if (result.success) {
-        setSuccessMessage(result.message);
-        if (result.warning) {
-          setError(result.warning);
-        }
-      } else {
-        setError(result.error);
-      }
-    } catch (error) {
-      console.error('Error assigning chores:', error);
-      setError(`An unexpected error occurred during assignment: ${error.message}`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  // handleAssignChores is removed, AssignChoreForm now uses server actions
+  // The form will display its own success/error/warning messages related to the assignment process.
 
   return (
     <div className="container mx-auto p-4 bg-gradient-to-br from-purple-50 to-indigo-100 min-h-screen">
@@ -72,16 +52,18 @@ export default function AssignChoresPage() {
         <p className="text-lg text-indigo-500 mt-2">Select kids, chores, and a date to create assignments.</p>
       </header>
 
+      {/* Page-level error display (e.g., for loading initial data) */}
       {error && (
         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md shadow" role="alert">
-          <p className="font-bold">Error</p>
+          <p className="font-bold">Loading Error</p>
           <p>{error}</p>
         </div>
       )}
 
+      {/* Page-level success message display (e.g., for loading initial data - if desired) */}
       {successMessage && (
         <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md shadow" role="alert">
-          <p className="font-bold">Success</p>
+          <p className="font-bold">Status</p>
           <p>{successMessage}</p>
         </div>
       )}
@@ -99,8 +81,10 @@ export default function AssignChoresPage() {
           <AssignChoreForm
             kids={kids}
             chores={chores}
-            onAssignChores={handleAssignChores}
-            isLoading={isSubmitting}
+            // onAssignChores is removed
+            // isLoading (isSubmitting) is removed
+            // The form's onCancel prop could be connected here if the page needed to react to form reset/success.
+            // For now, the form handles its own state reset and messaging for assignments.
           />
         </div>
       )}

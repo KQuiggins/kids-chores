@@ -1,11 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+import { createAssignments } from '@/app/actions/assignChoresAction';
 
-export default function AssignChoreForm({ kids, chores, onAssignChores, isLoading }) {
+const initialState = { message: null, error: null, success: false, warning: null };
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="px-6 py-3 text-base font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:bg-gray-400"
+    >
+      {pending ? 'Assigning...' : 'Assign Chores'}
+    </button>
+  );
+}
+
+export default function AssignChoreForm({ kids, chores, onCancel }) { // Removed onAssignChores, isLoading. Added onCancel for potential use.
   const [selectedKidIds, setSelectedKidIds] = useState([]);
   const [selectedChoreIds, setSelectedChoreIds] = useState([]);
   const [assignmentDate, setAssignmentDate] = useState(new Date().toISOString().split('T')[0]);
+
+  const [state, formAction] = useFormState(createAssignments, initialState);
+
+  useEffect(() => {
+    if (state.success) {
+      setSelectedKidIds([]);
+      setSelectedChoreIds([]);
+      // Optionally reset date or close form via onCancel
+      // setAssignmentDate(new Date().toISOString().split('T')[0]); 
+      if(onCancel) onCancel(); // Example: closing a modal after successful assignment
+    }
+  }, [state.success, onCancel]);
+
+
   const handleKidSelection = (kidId) => {
     setSelectedKidIds((prev) =>
       prev.includes(kidId) ? prev.filter((id) => id !== kidId) : [...prev, kidId]
@@ -16,35 +47,6 @@ export default function AssignChoreForm({ kids, chores, onAssignChores, isLoadin
     setSelectedChoreIds((prev) =>
       prev.includes(choreId) ? prev.filter((id) => id !== choreId) : [...prev, choreId]
     );
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (selectedKidIds.length === 0) {
-      alert('Please select at least one kid.');
-      return;
-    }
-    if (selectedChoreIds.length === 0) {
-      alert('Please select at least one chore.');
-      return;
-    }
-    if (!assignmentDate) {
-      alert('Please select a date for the assignment.');
-      return;
-    }
-
-    const assignments = [];
-    selectedKidIds.forEach((kidId) => {
-      selectedChoreIds.forEach((choreId) => {
-        assignments.push({
-          kid_id: kidId,
-          chore_id: choreId,
-          date: new Date(assignmentDate).toISOString(),
-          status: 'pending',
-        });
-      });
-    });
-    onAssignChores(assignments);
   };
 
   const toggleSelectAllKids = () => {
@@ -63,9 +65,13 @@ export default function AssignChoreForm({ kids, chores, onAssignChores, isLoadin
     }
   };
 
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 p-6 bg-white shadow-xl rounded-lg">
+    <form action={formAction} className="space-y-8 p-6 bg-white shadow-xl rounded-lg">
+      {/* Display messages */}
+      {state.message && !state.error && !state.warning && <p className="text-sm text-green-600 p-2 bg-green-50 rounded-md">{state.message}</p>}
+      {state.warning && <p className="text-sm text-yellow-700 p-2 bg-yellow-50 rounded-md">{state.warning} {state.message}</p>}
+      {state.error && <p className="text-sm text-red-600 p-2 bg-red-50 rounded-md">{state.error}</p>}
+      
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-2">Select Kids</h3>
         <button type="button" onClick={toggleSelectAllKids} className="mb-2 text-sm text-indigo-600 hover:text-indigo-800">
@@ -81,6 +87,8 @@ export default function AssignChoreForm({ kids, chores, onAssignChores, isLoadin
             >
               <input
                 type="checkbox"
+                name="kidIds" // Added name attribute
+                value={kid.$id} // Added value attribute
                 checked={selectedKidIds.includes(kid.$id)}
                 onChange={() => handleKidSelection(kid.$id)}
                 className="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500"
@@ -106,9 +114,11 @@ export default function AssignChoreForm({ kids, chores, onAssignChores, isLoadin
             >
               <input
                 type="checkbox"
+                name="choreIds" // Added name attribute
+                value={chore.$id} // Added value attribute
                 checked={selectedChoreIds.includes(chore.$id)}
                 onChange={() => handleChoreSelection(chore.$id)}
-                className="form-checkbox h-5 w-5 text-gray-900 rounded focus:ring-green-500"
+                className="form-checkbox h-5 w-5 text-gray-900 rounded focus:ring-green-500" // text-green-600 might be better
               />
               <div>
                 <span className="text-sm text-gray-700">{chore.title}</span>
@@ -126,6 +136,7 @@ export default function AssignChoreForm({ kids, chores, onAssignChores, isLoadin
         <input
           type="date"
           id="assignmentDate"
+          name="assignmentDate" // Added name attribute
           value={assignmentDate}
           onChange={(e) => setAssignmentDate(e.target.value)}
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
@@ -134,13 +145,7 @@ export default function AssignChoreForm({ kids, chores, onAssignChores, isLoadin
       </div>
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="px-6 py-3 text-base font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:bg-gray-400"
-        >
-          {isLoading ? 'Assigning...' : 'Assign Chores'}
-        </button>
+        <SubmitButton />
       </div>
     </form>
   );

@@ -38,46 +38,23 @@ export default function ManageChoresPage() {
   const handleAddChoreClick = () => {
     setEditingChoreData(null);
     setShowChoreForm(true);
-    setError('');
+    // setError(''); // Form will handle its own errors
   };
 
   const handleEditChore = (chore) => {
     setEditingChoreData(chore);
     setShowChoreForm(true);
-    setError('');
+    // setError(''); // Form will handle its own errors
   };
 
   const handleCancelForm = () => {
     setShowChoreForm(false);
     setEditingChoreData(null);
-    setError('');
+    setError(''); // Clear any page-level errors
+    loadChores(); // Reload chores data as a successful C/U operation might have occurred
   };
 
-  const handleSubmitChore = async (choreData, choreIdToUpdate) => {
-    setIsLoading(true);
-    setError('');
-    try {
-      let result;
-      if (choreIdToUpdate) {
-        result = await updateChore(choreIdToUpdate, choreData);
-      } else {
-        result = await createChore(choreData);
-      }
-
-      if (result.success) {
-        await loadChores();
-        setShowChoreForm(false);
-        setEditingChoreData(null);
-      } else {
-        setError(result.error);
-      }
-    } catch (error) {
-      console.error('Failed to save chore:', error);
-      setError('Failed to save chore. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // handleSubmitChore is removed, ChoreForm now uses server actions
 
   const handleDeleteChore = async (choreId) => {
     if (!confirm('Are you sure you want to delete this chore? This could affect existing assignments.')) {
@@ -136,7 +113,7 @@ export default function ManageChoresPage() {
             {editingChoreData ? 'Edit Chore' : 'Add New Chore'}
           </h2>
           <ChoreForm
-            onSubmitChore={handleSubmitChore}
+            // onSubmitChore is removed
             initialData={editingChoreData}
             onCancel={handleCancelForm}
           />
