@@ -3,6 +3,18 @@
 import { databases } from '@/app/lib/appwrite';
 import { Query, ID } from 'appwrite';
 
+// Helper function to ensure data is plain and serializable
+function toPlainObject(value) {
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch (error) {
+    console.error("Failed to serialize value:", error);
+    // Fallback or re-throw, depending on how critical this is.
+    // For now, returning a string representation or an error object.
+    return { serializationError: `Failed to serialize: ${error.message}` };
+  }
+}
+
 const DATABASE_ID = process.env.DATABASE_ID;
 const ASSIGNMENTS_COLLECTION_ID = process.env.ASSIGNMENTS_COLLECTION_ID;
 const KIDS_COLLECTION_ID = process.env.KIDS_COLLECTION_ID;
@@ -17,14 +29,15 @@ export async function fetchKidsAndChores() {
 
     return {
       success: true,
-      kids: kidsResponse.documents,
-      chores: choresResponse.documents
+      kids: toPlainObject(kidsResponse.documents),
+      chores: toPlainObject(choresResponse.documents)
     };
   } catch (error) {
     console.error('Failed to fetch kids or chores:', error);
+    const errorMessage = `Failed to load data: ${error.message}. Check Appwrite IDs and permissions.`;
     return {
       success: false,
-      error: `Failed to load data: ${error.message}. Check Appwrite IDs and permissions.`
+      error: toPlainObject(errorMessage)
     };
   }
 }

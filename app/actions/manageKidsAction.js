@@ -3,6 +3,18 @@
 import { databases, storage } from '@/app/lib/appwrite';
 import { ID } from 'appwrite';
 
+// Helper function to ensure data is plain and serializable
+function toPlainObject(value) {
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch (error) {
+    console.error("Failed to serialize value:", error);
+    // Fallback or re-throw, depending on how critical this is.
+    // For now, returning a string representation or an error object.
+    return { serializationError: `Failed to serialize: ${error.message}` };
+  }
+}
+
 const DATABASE_ID = process.env.DATABASE_ID;
 const KIDS_COLLECTION_ID = process.env.KIDS_COLLECTION_ID;
 const PROFILE_PHOTOS_BUCKET_ID = process.env.PROFILE_PHOTOS_BUCKET_ID;
@@ -12,13 +24,15 @@ export async function fetchKids() {
     const response = await databases.listDocuments(DATABASE_ID, KIDS_COLLECTION_ID);
     return {
       success: true,
-      kids: response.documents
+      kids: toPlainObject(response.documents)
     };
   } catch (error) {
     console.error('Failed to fetch kids:', error);
+    // Sanitize the error message before returning
+    const errorMessage = `Failed to load kids. Please ensure Appwrite is configured correctly (Database ID, Collection ID). Raw error: ${error.message}`;
     return {
       success: false,
-      error: 'Failed to load kids. Please ensure Appwrite is configured correctly (Database ID, Collection ID).'
+      error: toPlainObject(errorMessage)
     };
   }
 }

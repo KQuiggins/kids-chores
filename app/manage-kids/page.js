@@ -1,123 +1,48 @@
-'use client';
+// Removed 'use client';
+// import { useState, useEffect } from 'react'; // Removed
+// import KidsList from '../components/KidsList'; // Will be in Client Component
+// import KidForm from '../components/KidForm'; // Will be in Client Component
+import { fetchKids } from '../actions/manageKidsAction';
+// import { createKid, updateKid, deleteKid } from '../actions/manageKidsAction'; // These actions are used by the client component / forms
 
-import { useState, useEffect } from 'react';
-import KidsList from '../components/KidsList';
-import KidForm from '../components/KidForm';
-import { fetchKids, createKid, updateKid, deleteKid } from '../actions/manageKidsAction';
+// Import the client component placeholder (actual creation in next step)
+// For now, we'll just assume it exists for the structure:
+import ManageKidsClientView from './ManageKidsClientView'; 
 
-export default function ManageKidsPage() {
-  const [kids, setKids] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showKidForm, setShowKidForm] = useState(false);
-  const [editingKidData, setEditingKidData] = useState(null);
-  const [error, setError] = useState('');
+export default async function ManageKidsPage() {
+  const kidsData = await fetchKids(); // kidsData will be e.g. { success, kids, error }
 
-  async function loadKids() {
-    setIsLoading(true);
-    setError('');
-    try {
-      const result = await fetchKids();
-      if (result.success) {
-        setKids(result.kids);
-      } else {
-        setError(result.error);
-      }
-    } catch (error) {
-      console.error('Failed to fetch kids:', error);
-      setError('Failed to load kids. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+  // In the next step, we will create ManageKidsClientView and pass kidsData to it.
+  // For now, the return might be simple or just log the data.
+  // Or, to make it runnable, it can conditionally render based on kidsData.success
+  // and pass parts of kidsData to a conceptual client component.
+
+  // Example structure for this step:
+  if (!kidsData.success) {
+    // Ensure kidsData.error is a string or serializable.
+    // The toPlainObject in fetchKids should handle this for error objects.
+    const errorMessage = typeof kidsData.error === 'string' ? kidsData.error : JSON.stringify(kidsData.error);
+    return (
+      <div className="container mx-auto p-4">
+        <header className="text-center py-8">
+          <h1 className="text-5xl font-bold text-purple-700">Manage Your Kids</h1>
+        </header>
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+          <p className="font-bold">Error</p>
+          <p>{errorMessage}</p>
+        </div>
+      </div>
+    );
   }
 
-  useEffect(() => {
-    loadKids();
-  }, []);
-
-  const handleAddKidClick = () => {
-    setEditingKidData(null);
-    setShowKidForm(true);
-    // setError(''); // Form will handle its own errors
-  };
-
-  const handleEditKid = (kid) => {
-    setEditingKidData(kid);
-    setShowKidForm(true);
-    // setError(''); // Form will handle its own errors
-  };
-
-  const handleCancelForm = () => {
-    setShowKidForm(false);
-    setEditingKidData(null);
-    setError(''); // Clear any page-level errors
-    loadKids(); // Reload kids data as a successful C/U operation might have occurred
-  };
-
-  // handleSubmitKid is removed, KidForm now uses server actions
-
-  const handleDeleteKid = async (kidId, photoFileIdToDelete) => {
-    if (!confirm('Are you sure you want to delete this kid?')) {
-      return;
-    }
-    setIsLoading(true);
-    setError('');
-    try {
-      const result = await deleteKid(kidId, photoFileIdToDelete);
-      if (result.success) {
-        await loadKids();
-      } else {
-        setError(result.error);
-      }
-    } catch (error) {
-      console.error('Failed to delete kid:', error);
-      setError(`Failed to delete kid: ${error.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // If successful, it would eventually render the client component:
   return (
     <div className="container mx-auto p-4 bg-gradient-to-br from-purple-100 to-pink-100 min-h-screen">
       <header className="text-center py-8">
         <h1 className="text-5xl font-bold text-purple-700">Manage Your Kids</h1>
         <p className="text-lg text-purple-500 mt-2">Add, edit, or remove kid profiles.</p>
       </header>
-
-      {error && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
-          <p className="font-bold">Error</p>
-          <p>{error}</p>
-        </div>
-      )}
-
-      {!showKidForm ? (
-        <>
-          <div className="text-center mb-8">
-            <button
-              onClick={handleAddKidClick}
-              className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105"
-            >
-              Add New Kid
-            </button>
-          </div>
-          {isLoading && !kids.length ? (
-            <p className="text-center text-purple-500 text-xl">Loading kids...</p>
-          ) : (
-            <KidsList kids={kids} onEditKid={handleEditKid} onDeleteKid={handleDeleteKid} />
-          )}
-        </>
-      ) : (
-        <div className="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-2xl">
-          <h2 className="text-3xl font-semibold text-purple-600 mb-6 text-center">
-            {editingKidData ? 'Edit Kid' : 'Add New Kid'}
-          </h2>
-          <KidForm
-            // onSubmitKid is removed
-            initialData={editingKidData}
-            onCancel={handleCancelForm}
-          />
-        </div>
-      )}
+      <ManageKidsClientView initialKids={kidsData.kids} />
     </div>
   );
 }
